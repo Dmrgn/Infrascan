@@ -1,0 +1,5 @@
+openai==0.27.8
+msgpack==1.0.5
+googlemaps==4.10.0
+beautifulsoup4==4.12.2
+Flask==2.0.1
