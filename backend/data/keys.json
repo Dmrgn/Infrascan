@@ -1,4 +1,5 @@
 {
-    "openai":"key goes here",
-    "gmaps":"key goes here"
+    "openai":"key here",
+    "gmaps":"key here",
+    "mapbox":"key here"
 }

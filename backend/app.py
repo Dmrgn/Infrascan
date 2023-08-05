@@ -2,15 +2,13 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 from flask import Response
+import json
 
 import finder
 import chat
 from constants import *
 
 app = Flask(__name__)
-
-# house_lat = 43.695770
-# house_long = -79.433450
 
 @app.route("/")
 def index():
@@ -22,47 +20,33 @@ def fetch():
     address = request.args.get("address")
     if not address:
         return "Please specify an address."
-    geocode = finder.gmaps.geocode(address)[0]
-    geocode = {
-        "a":geocode["formatted_address"],
-        "g":{
-            "lat":geocode["geometry"]["location"]["lat"],
-            "lng":geocode["geometry"]["location"]["lng"]
-        },
-    }
+    geocode = finder.address_to_formatted_geocode_mapbox(address, True)
 
     # perform analysis
     analysis = finder.analyze(geocode)
 
     # format analysis for turbo gpt
-    formatted_analysis = ""
-    for result in analysis["results"]:
-        formatted_analysis += "[{category}] ".format(category=result["description"])
-        for item in result["results"]:
-            formatted_analysis += "{name} is {distance} kilometers away with a user rating of {rating} and a community score of {score}. It is listed as being a: ".format(name=item["name"], distance=item["distance"], rating=item["rating"], score=item["score"])
-            for type in item["types"]:
-                formatted_analysis += "{thing},".format(thing=type)
-            formatted_analysis += ". "
-        formatted_analysis += "\n"
-    description = chat.generate_response(geocode["a"], PROMPT.format(data=formatted_analysis)).split("\n")
-    overview = description.pop(-1)
-    text = []
-    for x in range(0, len(description)):
-        paragraph = description.pop(0).split("]")
-        if len(paragraph) != 2:
-            continue
-        text.append({
-            "title": paragraph[0].split("[")[1],
-            "text": paragraph[1]
-        })
+    formatted_analysis = chat.format_prompt_with_analysis(analysis)
+    # ask turbo gpt for human readable analysis
+    generated_text = chat.generate_response(geocode["a"], formatted_analysis)
+    # break giant string into sections for the frontend
+    formatted_generated_text = chat.format_generated_text(generated_text)
+    
     # see ./data/sample_response.json for more details
-    response = jsonify({
+    response = {
         "mapUrl": finder.create_map_url(geocode, analysis),
         "score": analysis["score"],
         "results": analysis,
-        "overview": overview,
-        "text": text,
-    }) 
+        "overview": formatted_generated_text["overview"],
+        "text": formatted_generated_text["text"],
+        "address": geocode["a"]
+    }
+    
+    with open("./response.json", "w") as f:
+        json.dump(response, f)
+
+    response = jsonify(response)
+
 
     # this is poor practice in production
     response.headers.add('Access-Control-Allow-Origin', '*')
