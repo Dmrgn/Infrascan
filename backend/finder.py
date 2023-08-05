@@ -7,7 +7,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 from constants import *
-import filer
 
 with open("./data/keys.json") as f:
     data = json.load(f)
@@ -16,7 +15,7 @@ with open("./data/keys.json") as f:
 
 gmaps = googlemaps.Client(key=gmaps_api_key)
 
-def address_to_formatted_geocode_mapbox(address, extra_info=False):
+def address_to_formatted_geocode(address, include_region_info=False):
     geocode = requests.get(f"https://api.mapbox.com/geocoding/v5/mapbox.places/{urllib.parse.quote(address)}.json?access_token={mapbox_api_key}").json()
     geocode = geocode["features"][0]
     data = {
@@ -26,40 +25,9 @@ def address_to_formatted_geocode_mapbox(address, extra_info=False):
             "lng":geocode["center"][0]
         },
     }
-    if extra_info:
+    if include_region_info:
         data["region"] = f'{geocode["context"][-3]["text"]}, {geocode["context"][-2]["text"]}, {geocode["context"][-1]["text"]}'
-    print("\t", address, data["a"])
     return data
-
-def address_to_formatted_geocode(address):
-    geocode = gmaps.geocode(address)[0]
-    return {
-        "a":geocode["formatted_address"],
-        "g":{
-            "lat":geocode["geometry"]["location"]["lat"],
-            "lng":geocode["geometry"]["location"]["lng"]
-        },
-    }
-
-# takes an array of geocodes and returns 
-# a subset of the passed array that has
-# all geocodes at least (distance) apart from
-# each other
-def filter_geocodes(geocodes, distance=0.5):
-    valid_geocodes = []
-    for geocode in geocodes:
-        is_valid_geocode = True
-        index = 0
-        while is_valid_geocode and index < len(valid_geocodes):
-            if geo_distance(
-                (valid_geocodes[index]["g"]["lat"], valid_geocodes[index]["g"]["lng"]), 
-                (geocode["g"]["lat"], geocode["g"]["lng"])) < distance:
-                is_valid_geocode = False
-                break
-            index += 1
-        if is_valid_geocode:
-            valid_geocodes.append(geocode)
-    return valid_geocodes
 
 def create_map_url(geocode, analysis):
     # define the parameters for the static map image
@@ -68,7 +36,6 @@ def create_map_url(geocode, analysis):
     size = (1000, 1000)  # set the size of the image in pixels (width, height)
     map_type = 'roadmap' # choose the type of map ('roadmap', 'satellite', 'terrain', or 'hybrid')
 
-    # start of im tired code
     markers = {}
     for category in analysis["results"]:
         # too many custom markers bugs it out according to the docs
@@ -87,7 +54,6 @@ def create_map_url(geocode, analysis):
         "lng": geocode["g"]["lng"],
         "type": "home"
     })
-    # end of im tired code
 
     # maps the category to the icon on the generated map
     color_codes = {
@@ -110,103 +76,6 @@ def create_map_url(geocode, analysis):
     static_map_url += "&key="+gmaps_api_key
     return static_map_url
 
-# fetches the geocode data from a list of addresses
-# and saves it to the geocodes file
-def addresses_to_geocodes():  
-    addresses = filer.open_msgpack("addresses")
-    geocodes = []
-    num = 0
-    for address in addresses:
-        num+=1
-        print("Processing address: " + str(num) + "/" + str(len(addresses)) + " " + address)
-        # get formatted geocode of address
-        geocodes.append(address_to_formatted_geocode_mapbox(address))
-    print("Saving")
-    filer.save_msgpack("geocodes", geocodes)
-
-# analyze the specified geocode based
-# on the google maps api results from
-# the specified search term
-def analyze_geocode_with_term(geocode, term):
-    places_nearby = gmaps.places_nearby(location=(geocode["g"]["lat"], geocode["g"]["lng"]), radius=1000, keyword=term)["results"]
-    results = []
-    term_score = 0
-    # take the first 3 places for analysis
-    for i in range(min(len(places_nearby), 3)):
-        results.append({
-            "name": places_nearby[i]["name"],
-            "distance": geo_distance((geocode["g"]["lat"], geocode["g"]["lng"]), (places_nearby[i]["geometry"]["location"]["lat"], places_nearby[i]["geometry"]["location"]["lng"])),
-            "g": {
-                "lat":places_nearby[i]["geometry"]["location"]["lat"],
-                "lng":places_nearby[i]["geometry"]["location"]["lng"]
-            },
-            "rating":3 if places_nearby[i]["rating"] == 0 else places_nearby[i]["rating"],
-            "types":[x for x in places_nearby[i]["types"]],
-            "score": 0
-        })
-        results[-1]["score"] = (results[-1]["rating"]/5)/min(max(results[-1]["distance"], 0.1), 1)
-        term_score += results[-1]["score"]
-    return {
-        "score": term_score,
-        "description": term,
-        "results":results
-    }
-
-# web scrape for information about places matching 
-# the specified search term nearby the specified
-# address. Alternative to using (and paying for) the
-# gmaps places nearby api
-def analyze_address_with_term_no_gmaps(geocode, term):
-    # create search url
-    q = urllib.parse.quote(f"{term} near {geocode['a']}")
-    search_url = f"https://www.google.ca/search?q={q}"
-    # ask google for nearby locations
-    search_results = requests.get(search_url).text
-    with open("test.html", "w") as f:
-        f.write(search_results)
-    search_soup = bs(search_results, features="html.parser")
-    # find html elements describing place results
-    places_list = search_soup.select("#main>div>div>div>a>div>div")[:3]
-    results = []
-    term_score = 0
-    for place in places_list:
-        try:
-            # get address of this place and geocode
-            place_name = place.contents[0].select("h3>div")[0].text
-            try:
-                place_address = place.contents[1].select("div")[0].contents[2].text.split("\u22c5")[1].strip()
-            except:
-                place_address = place_name + ", " + geocode["region"]
-            place_geocode = address_to_formatted_geocode_mapbox(place_address)
-            distance = geo_distance((geocode["g"]["lat"], geocode["g"]["lng"]), (place_geocode["g"]["lat"], place_geocode["g"]["lng"]))
-            if distance > 1.5:
-                # keep only results that are < 1.5 km away
-                continue
-            try:
-                rating = float(place.contents[1].select("div>span")[0].contents[1].text)
-            except:
-                rating = 3
-            results.append({
-                "name": place_name,
-                "distance": distance,
-                "g": {
-                    "lat":place_geocode["g"]["lat"],
-                    "lng":place_geocode["g"]["lng"]
-                },
-                "rating": rating,
-                "types":[term],
-                "score": 0
-            })
-            results[-1]["score"] = (results[-1]["rating"]/5)/min(max(results[-1]["distance"], 0.1), 1)
-            term_score += results[-1]["score"]
-        except:
-            continue
-    return {
-        "score": term_score,
-        "description": term,
-        "results":results
-    }
-
 # interpret and find information about a place defined
 # by the passed block of html which was scraped from 
 # a webpage
@@ -222,9 +91,7 @@ def understand_place(search_term, origin_geocode, place, visited_place_names):
         return None
     # check if this place name has already been visited
     if place_name in visited_place_names:
-        print("\t", place_name, " already found")
         return None
-    print(place_name)
     # add to visited list
     visited_place_names.add(place_name)
     try: place_rating = float(place.select("span.oqSTJd")[0].text)
@@ -248,7 +115,7 @@ def understand_place(search_term, origin_geocode, place, visited_place_names):
         if len(place_address) == 0:
             raise Exception()
         # get geocode info based on address
-        place_geocode = address_to_formatted_geocode_mapbox(f"{place_address}, {origin_geocode['region']}")
+        place_geocode = address_to_formatted_geocode(f"{place_address}, {origin_geocode['region']}")
     except:
         # get the description of the place if it is available
         try:
@@ -261,16 +128,14 @@ def understand_place(search_term, origin_geocode, place, visited_place_names):
         # try to use geocoding to get the address
         # based off of the name of the location
         # and its available description
-        place_geocode = address_to_formatted_geocode_mapbox(f"{place_name},{' '+place_description+', ' if not place_description is None else ''} {origin_geocode['region']}")
+        place_geocode = address_to_formatted_geocode(f"{place_name},{' '+place_description+', ' if not place_description is None else ''} {origin_geocode['region']}")
     # set the address to be the more accurate geocode 
     # address as opposed to the webscraped address
     place_address = place_geocode["a"]
     # get distance to origin
-    print("\t", place_geocode["g"], origin_geocode["g"])
     place_distance = geo_distance((place_geocode["g"]["lat"], place_geocode["g"]["lng"]), (origin_geocode["g"]["lat"], origin_geocode["g"]["lng"]))
     # only keep results within 1.5km
     if place_distance > 2:
-        print("\tResult was too far away at", place_distance)
         return None
     return {
         "name": place_name,
@@ -282,21 +147,14 @@ def understand_place(search_term, origin_geocode, place, visited_place_names):
         "score": (place_rating/5)/min(max(place_distance, 0.1), 1)
     }
 
+# web scrape google search of the passed
+# query for place results
 def get_place_results_from_query(query):
     q = urllib.parse.quote(query)
     search_url = f"https://www.google.ca/search?q={q}"
     # ask google for the link to see more places
     search_results = requests.get(search_url).text
     search_soup = bs(search_results, features="html.parser")
-    # # find the "more places" element
-    # more_places_url = None
-    # locs = search_soup.select("#main>div>div>div>a")
-    # for loc in locs:
-    #     if loc.attrs["href"].find("maps.google.ca") != -1:
-    #         more_places_url = loc.attrs["href"]
-    #         break
-    # # now navigate to the more places page
-    # search_results = requests.get(more_places_url).text
     # find html elements describing place results
     places_list = search_soup.select("#main>div>div>div>a>div>div")[:3] # take the first 3
     return places_list
@@ -305,17 +163,12 @@ def get_place_results_from_query(query):
 # the specified search term nearby the specified
 # address. Alternative to using (and paying for) the
 # gmaps places nearby api
-# use the "more places" link generated by the first
-# search page to get more results
-def analyze_address_with_term_no_gmaps_large_list(geocode, term):
+def analyze_address_with_term(geocode, term):
     # create search url
     shortened_address= geocode['a'].split(',')[0]
-    search_queries = [
-        f"{term} near {shortened_address}, {geocode['region']}",
-        f"{term} within 2km of {shortened_address}, {geocode['region']}",
-        f"{term} close to {shortened_address}, {geocode['region']}",
-    ]
+    search_queries = [query.format(term=term, shortened_address=shortened_address, geocode_region=geocode["region"]) for query in SEARCH_QUERIES]
     places_list = []
+    # perform each query and collect place results
     for search_query in search_queries:
         query_results = get_place_results_from_query(search_query)
         for place in query_results:
@@ -326,7 +179,6 @@ def analyze_address_with_term_no_gmaps_large_list(geocode, term):
     results = []
     term_score = 0
     # process each place result
-    print(term, "=================:")
     for place in places_list:
         place_data = understand_place(term, geocode, place, visited_place_names)
         if place_data is None:
@@ -366,7 +218,7 @@ def analyze(geocode):
     # analyze each category and add to total score
     # keep track of analysis data for later
     for term in search_terms:
-        results.append(analyze_address_with_term_no_gmaps_large_list(geocode, term))
+        results.append(analyze_address_with_term(geocode, term))
         score += results[-1]["score"]
     return {
         "results": results,

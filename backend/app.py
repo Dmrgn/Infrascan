@@ -20,7 +20,7 @@ def fetch():
     address = request.args.get("address")
     if not address:
         return "Please specify an address."
-    geocode = finder.address_to_formatted_geocode_mapbox(address, True)
+    geocode = finder.address_to_formatted_geocode(address, True)
 
     # perform analysis
     analysis = finder.analyze(geocode)
@@ -32,21 +32,16 @@ def fetch():
     # break giant string into sections for the frontend
     formatted_generated_text = chat.format_generated_text(generated_text)
     
+    # return formatted analysis
     # see ./data/sample_response.json for more details
-    response = {
+    response = jsonify({
         "mapUrl": finder.create_map_url(geocode, analysis),
         "score": analysis["score"],
         "results": analysis,
         "overview": formatted_generated_text["overview"],
         "text": formatted_generated_text["text"],
         "address": geocode["a"]
-    }
-    
-    with open("./response.json", "w") as f:
-        json.dump(response, f)
-
-    response = jsonify(response)
-
+    })
 
     # this is poor practice in production
     response.headers.add('Access-Control-Allow-Origin', '*')
