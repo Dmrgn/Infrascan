@@ -13,7 +13,7 @@ Individuals in Canadian communities are experiencing a lack of community due to 
 
 ## Setup
 
-You need an openai api key, a mapbox api key and a google maps api key to use the prototype.
+You need an openai api key, a mapbox api key and a google maps api key to use the prototype. You also need a gmail account and app password to use as the verification mailer.
 
 - [backend](./backend/readme.md)
 - [frontend](./frontend/readme.md)

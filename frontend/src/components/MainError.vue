@@ -1,10 +1,14 @@
 <template>
-    <div v-if="error != ''" class="absolute top-1/2 left-1/2 w-1/6 h-1/6">
-        <div class="bg-white rounded-2xl w-full h-full shadow-2xl" style="transform: translate(-50%, -50%);">
+    <div v-if="error != ''" class="absolute top-0 left-0 blur" style="width: 100vw; height: 100vh; background-color: rgba(100,100,100,0.5);"></div>
+    <div v-if="error != ''" class="absolute top-1/2 left-1/2">
+        <div class="error-box" style="transform: translate(-50%, -50%);">
+            <h1 class="m-4 pt-3 my-0 text-red-400 text-lg">Error:</h1>
             <h1 class="m-4 pt-3 mt-0">
                 {{ error }}
             </h1>
-            <input @click="onClose" class="absolute bottom-0 bg-gray-200 left-1/2 w-1/6 rounded hover:bg-blue-400 transition-colors" style="transform: translate(-50%, -50%);" type="button" value="Ok">
+            <div class="self-center mb-2">
+                <input @click="onClose" class="button" type="button" value="Ok">
+            </div>
         </div>
     </div>
 </template>
@@ -27,5 +31,9 @@ export default {
 </script>
 
 <style lang="css" scoped>
-
+    .error-box {
+        @apply bg-white rounded-2xl w-full h-full shadow-2xl flex flex-col;
+        width: min(95vw, 400px);
+        height: min(95vh, 300);
+    }
 </style>

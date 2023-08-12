@@ -4,7 +4,7 @@
         <div v-if="fetchedData != null" class="score-circle">
             <h2 class="absolute bottom-4 left-1/2 title text-6xl" style="transform: translate(-50%, 0);">{{ Math.round(fetchedData.score) }}</h2>
         </div>
-        <AddressBar @onSearch="onSearch" :isCentered="fetchedData == null"></AddressBar>
+        <AddressBar @onSearch="onSearch" :isShown="isLoggedIn" :isCentered="fetchedData == null"></AddressBar>
     </div>
 </template>
 
@@ -14,7 +14,8 @@ import AddressBar from './AddressBar.vue';
 export default {
     name: "MainMap",
     props: {
-        fetchedData: null
+        fetchedData: null,
+        isLoggedIn: false,
     },
     components: {
         AddressBar,

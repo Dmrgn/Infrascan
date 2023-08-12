@@ -6,6 +6,7 @@ SEARCH_QUERIES = [
     "{term} close to {shortened_address}, {geocode_region}",
 ]
 EARTH_RADIUS = 6371
+EMAIL_ADDRESS = "infrascanmailer@gmail.com"
 PROMPT = """
 Write a paragraph about the predicted community environment given the following description of a neighbourhood. Avoid commenting on economics. The "score" field represents the computed community score in each respective category. Write a couple sentences pertaining to each category, ["grocery", "community center", "park", "shopping", "transit", "school", "restaurant"]. End with a concluding sentence that contains an overview of the community environment in the area.
 

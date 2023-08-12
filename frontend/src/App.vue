@@ -2,6 +2,7 @@
 import MainAnalysis from './components/MainAnalysis.vue';
 import MainMap from './components/MainMap.vue';
 import MainError from './components/MainError.vue';
+import MainLogin from './components/MainLogin.vue';
 import LoadingSpinner from './components/LoadingSpinner.vue';
 </script>
 
@@ -9,41 +10,64 @@ import LoadingSpinner from './components/LoadingSpinner.vue';
     <main>
         <div :class="'grid'+(fetchedData != null ? ' grid-cols-3' : ' grid-cols-2')" style="width: 100vw; height: 100vh;">
             <MainAnalysis v-if="fetchedData != null" :fetchedData="fetchedData"></MainAnalysis>
-            <MainMap @onSearch="onSearch" :fetchedData="fetchedData"></MainMap>
+            <MainMap @onSearch="onSearch" :isLoggedIn="isLoggedIn" :fetchedData="fetchedData"></MainMap>
         </div>
+        <MainLogin @onLogin="login" @onRegister="register" @onEmailCode="sendEmailCode" :isWaitingForEmailCode="isWaitingForEmailCode" :isLoggedIn="isLoggedIn"></MainLogin>
         <MainError @onClose="this.error = ''" :error="error"></MainError>
-        <LoadingSpinner :isLoading="isLoading"></LoadingSpinner>
+        <LoadingSpinner :isLoading="isLoading" :serverUrl="serverUrl"></LoadingSpinner>
     </main>
 </template>
 
 <script>
+import { useCookies } from "vue3-cookies";
+const { cookies } = useCookies();
+
 export default {
     name:"App",
     data() {
         return {
             fetchedData: null,
             error: "",
+            serverUrl: "http://127.0.0.1:5000",
+            sessionSecret: "",
+            emailSecret: "",
             isLoading: false,
-            serverUrl: "http://127.0.0.1:5000"
+            isLoggedIn: false,
+            isWaitingForEmailCode: false,
         }
     },
+    mounted () {
+        // check to see if we have cookies indicating that we are logged in
+        this.sessionSecret = localStorage.getItem("secret") ?? ""
+        this.emailSecret = localStorage.getItem("email-secret") ?? ""
+        this.isLoggedIn = this.sessionSecret != ""
+    },
     methods: {
-        async fetchAddress(address) {
-            try {
-                return this.fetchedData = await(await fetch(address, {
-                    method: "GET",
-                    headers: {
-                        "Ngrok-Skip-Browser-Warning": "69420",
-                    }
-                })).json()
-            } catch (e) {
-                this.error = "An error occured while communicating with our server.";
-                return null;
-            }
+        async login(email, password) { // request login secret cookie
+            const response = await this.fetchData(`${this.serverUrl}/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`)
+            if (response === null) return;
+            localStorage.setItem("secret", response["secret"]);
+            this.sessionSecret = response["secret"];
+            this.isLoggedIn = true;
+        },
+        async register(name, email, password) { // start registration process
+            const response = await this.fetchData(`${this.serverUrl}/register?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`)
+            if (response === null) return;
+            localStorage.setItem("email-secret", response["secret"]);
+            this.emailSecret = response["secret"];
+            this.isWaitingForEmailCode = true;
+        },
+        async sendEmailCode(code) { // finish registration by sending email confirmation code to the server
+            const response = await this.fetchData(`${this.serverUrl}/emailcode?code=${encodeURIComponent(code)}&secret=${encodeURIComponent(this.emailSecret)}`)
+            if (response === null) return;
+            localStorage.removeItem("email-secret");
+            localStorage.setItem("secret", response["secret"]);
+            this.sessionSecret = response["secret"];
+            this.isWaitingForEmailCode = false;
+            this.isLoggedIn = true;
         },
         async onSearch(address) {
-            this.isLoading = true;
-            this.fetchedData = await this.fetchAddress(`${this.serverUrl}/fetch?address=${address}`)
+            this.fetchedData = await this.fetchData(`${this.serverUrl}/fetch?address=${address}&secret=${encodeURIComponent(this.sessionSecret)}`)
             // this.fetchedData = {
             //     "results": [{
             //         "description": "grocery",
@@ -257,11 +281,46 @@ export default {
             //     "overview": "Overall, the property's surroundings present a dynamic and inviting community atmosphere, making it an attractive choice for individuals or families seeking an active and involved lifestyle.",
             //     "mapUrl": "https://media.wired.com/photos/59269cd37034dc5f91bec0f1/master/w_2560%2Cc_limit/GoogleMapTA.jpg"
             // };
-            this.isLoading = false;
-        }
+        },
+        async fetchData(address) {
+            this.isLoading = true;
+            try {
+                const response = await(await fetch(address, {
+                    method: "GET",
+                    headers: {
+                        "Ngrok-Skip-Browser-Warning": "69420",
+                    },
+                    credentials: "include"
+                })).json()
+                if (response["error"] == undefined) {
+                    this.isLoading = false;
+                    return response
+                }
+                if (response["login"] != undefined) {
+                    this.isLoggedIn = false;
+                    localStorage.removeItem("secret");
+                    localStorage.removeItem("email-secret");
+                    this.sessionSecret = "";
+                    this.emailSecret = "";
+                }
+                this.error = response.error;
+                this.isLoading = false;
+                return null;
+            } catch (e) {
+                this.error = "An error occured while communicating with our server.";
+                this.isLoading = false;
+                return null;
+            }
+        },
     },
 }
 </script>
 
-<style scoped>
+<style>
+.button {
+    @apply rounded bg-gray-200 p-4 hover:bg-red-400 hover:text-white transition-colors cursor-pointer;
+}
+.link {
+    @apply underline text-red-400 hover:text-gray-400 cursor-pointer;
+}
 </style>

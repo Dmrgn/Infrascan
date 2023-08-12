@@ -1,5 +1,6 @@
 {
-    "openai":"key here",
-    "gmaps":"key here",
-    "mapbox":"key here"
+    "openai":"key",
+    "gmaps":"key",
+    "mapbox":"key",
+    "email": "key"
 }
