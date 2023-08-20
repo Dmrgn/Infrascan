@@ -73,11 +73,12 @@ export default {
         },
         async sendEmailCode(code) { // finish registration by sending email confirmation code to the server
             const response = await this.fetchData(`${this.serverUrl}/emailcode?code=${encodeURIComponent(code)}&secret=${encodeURIComponent(this.emailSecret)}`)
-            if (response === null) return;
+            // clear email-secret either way to prevent users from getting stuck
             localStorage.removeItem("email-secret");
+            this.isWaitingForEmailCode = false;
+            if (response === null) return;
             localStorage.setItem("secret", response["secret"]);
             this.sessionSecret = response["secret"];
-            this.isWaitingForEmailCode = false;
             this.isLoggedIn = true;
         },
         async fetchUserStats() { // request user stats with secret
