@@ -2,3 +2,5 @@ __pycache__
 backup
 research_data
 data/*.sqlite
+vercel.json
+.vercel
