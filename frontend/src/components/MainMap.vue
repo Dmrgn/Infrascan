@@ -6,7 +6,7 @@
         </div>
         <div v-if="isLoggedIn" class="absolute right-4 top-4 flex md:items-start md:flex-row flex-col-reverse items-end">
             <div class="bg-white rounded-2xl p-4 shadow-2xl md:mr-4 md:mt-0 mt-4">
-                Tokens Remaining: <span class="font-bold text-xl">{{ userStats.tokens }}</span>
+                Tokens Remaining: <span class="font-bold text-xl">{{ userStats?.tokens }}</span>
             </div>
             <div @click="onOpenSettings" class="bg-white rounded-2xl p-2 shadow-2xl">
                 <img class="settings-gear" width="64" height="64" src="https://img.icons8.com/material-outlined/64/settings--v1.png" alt="settings--v1"/>
