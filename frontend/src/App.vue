@@ -14,7 +14,7 @@ import MainSettings from './components/MainSettings.vue';
             <MainMap @onSearch="onSearch" @onOpenSettings="openSettings" :isLoggedIn="isLoggedIn" :userStats="userStats" :fetchedData="fetchedData"></MainMap>
         </div>
         <MainLogin @onLogin="login" @onRegister="register" @onEmailCode="sendEmailCode" :isWaitingForEmailCode="isWaitingForEmailCode" :isLoggedIn="isLoggedIn"></MainLogin>
-        <MainError @onClose="this.error = ''" :error="error"></MainError>
+        <MainError @onClose="error = ''" :error="error"></MainError>
         <MainSettings @onCloseSettings="isSettings=false" :isShown="isSettings" :userStats="userStats"></MainSettings>
         <LoadingSpinner :isLoading="isLoading" :serverUrl="serverUrl"></LoadingSpinner>
     </main>
@@ -29,7 +29,7 @@ export default {
             fetchedData: null,
             userStats: null,
             error: "",
-            serverUrl: "http://127.0.0.1:5000",
+            serverUrl: "https://d8e9-74-15-109-87.ngrok-free.app",
             sessionSecret: "",
             emailSecret: "",
             isLoading: false,
