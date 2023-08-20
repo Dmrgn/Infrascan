@@ -1,3 +1,5 @@
+import password_strength
+
 # constants for changing program behaviour
 DATABASE_FOLDER = "./data/" # location of msgpack data files
 SEARCH_QUERIES = [
@@ -5,7 +7,28 @@ SEARCH_QUERIES = [
     "{term} within 2km of {shortened_address}, {geocode_region}",
     "{term} close to {shortened_address}, {geocode_region}",
 ]
-EARTH_RADIUS = 6371
+SEARCH_TERMS = [
+    "grocery",
+    "community center",
+    "park",
+    "shopping",
+    "transit",
+    "school",
+    "restaurant"
+]
+MAX_CACHE_SIZE = 30 # number of addresses that will be cached
+EARTH_RADIUS = 6371 # radius of the earth in km
+NUM_DEFAULT_TOKENS = 10 # tokens given to new accounts on creation
+MAX_CACHE_AGE = 15 # max age in days allowed for cached data until we invalidate it
+SESSION_LENGTH = 60 # session length in minutes before having to login again
+VALID_NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 "
+PASSWORD_POLICY = password_strength.PasswordPolicy.from_names(
+    length=8,
+    uppercase=1, 
+    numbers=1,
+    special=1,
+    nonletters=0,
+)
 EMAIL_ADDRESS = "infrascanmailer@gmail.com"
 PROMPT = """
 Write a paragraph about the predicted community environment given the following description of a neighbourhood. Avoid commenting on economics. The "score" field represents the computed community score in each respective category. Write a couple sentences pertaining to each category, ["grocery", "community center", "park", "shopping", "transit", "school", "restaurant"]. End with a concluding sentence that contains an overview of the community environment in the area.

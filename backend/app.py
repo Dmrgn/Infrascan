@@ -3,10 +3,12 @@ from flask import jsonify
 from flask import request
 from flask import Response
 import json
+import user_agents
 
 import finder
 import chat
 import database
+import stats
 from constants import *
 
 app = Flask(__name__)
@@ -19,14 +21,13 @@ def index():
 def login():
     email = request.args.get("email")
     password = request.args.get("password")
+    device = user_agents.parse(request.headers.get('User-Agent')).device
     if email == None or password == None:
-        response = jsonify({"error":"Either name, email or password were missing on the request"})
-        return headerify(response)
-    login_response = database.login(email, password)
+        return headerify(jsonify({"error":"Either name, email or password were missing on the request"}))
+    login_response = database.login(email, password, device)
     if login_response["error"] != None:
-        response = jsonify(login_response)
-        return headerify(response)
-    response = jsonify({"secret": login_response["secret"]})
+        return headerify(jsonify(login_response))
+    response = jsonify({"secret": login_response["secret"], "stats": login_response["stats"]})
     return headerify(response)
 
 @app.route("/register")
@@ -35,12 +36,10 @@ def register():
     email = request.args.get("email")
     password = request.args.get("password")
     if name == None or email == None or password == None:
-        response = jsonify({"error":"Either name, email or password were missing on the request"})
-        return headerify(response)
+        return headerify(jsonify({"error":"Either name, email or password were missing on the request"}))
     register_response = database.register(name, email, password)
     if register_response["error"] != None:
-        response = jsonify(register_response)
-        return headerify(response)
+        return headerify(jsonify(register_response))
     response = jsonify({"secret": register_response["secret"]})
     return headerify(response)
 
@@ -48,16 +47,26 @@ def register():
 def emailcode():
     email_code = request.args.get("code")
     secret = request.args.get("secret")
-    print(email_code, secret)
+    device = user_agents.parse(request.headers.get('User-Agent')).device
     if email_code == None or secret == None:
-        response = jsonify({"error":"The email code was missing on the request or there was no secret"})
-        return headerify(response)
-    email_code_response = database.emailcode(email_code, secret)
+        return headerify(jsonify({"error":"The email code was missing on the request or there was no secret"}))
+    email_code_response = database.emailcode(email_code, secret, device)
     if email_code_response["error"] != None:
-        response = jsonify(email_code_response)
-        return headerify(response)
-    response = jsonify({"secret": email_code_response["secret"]})
+        return headerify(jsonify(email_code_response))
+    response = jsonify({"secret": email_code_response["secret"], "stats": email_code_response["stats"]})
     return headerify(response)
+
+@app.route("/userstats")
+def userstats():
+    secret = request.args.get("secret")
+    if secret == None:
+        return headerify(jsonify({"error":"No secret was attached to the request"}))
+    # confirm credentials
+    validate_response = database.validate_user(secret)
+    if validate_response["error"] != None:
+        return headerify(jsonify(validate_response))
+    # return user stats
+    return headerify(jsonify(stats.get_stats(validate_response["email"])["stats"]))
 
 # fetch the infrascan results for an address
 @app.route("/fetch")
@@ -69,33 +78,16 @@ def fetch():
     if not secret:
         return headerify(jsonify({"error":"No secret was attached to the request"}))
     
+    # confirm credentials
     validate_response = database.validate_user(secret)
     if validate_response["error"] != None:
         return headerify(jsonify(validate_response))
-
-    # get geocode of the address
-    geocode = finder.address_to_formatted_geocode(address, True)
-    # perform analysis
-    analysis = finder.analyze(geocode)
-
-    # format analysis for turbo gpt
-    formatted_analysis = chat.format_prompt_with_analysis(analysis)
-    # ask turbo gpt for human readable analysis
-    generated_text = chat.generate_response(geocode["a"], formatted_analysis)
-    # break giant string into sections for the frontend
-    formatted_generated_text = chat.format_generated_text(generated_text)
     
-    # return formatted analysis
-    # see ./data/sample_response.json for more details
-    response = jsonify({
-        "mapUrl": finder.create_map_url(geocode, analysis),
-        "score": analysis["score"],
-        "results": analysis,
-        "overview": formatted_generated_text["overview"],
-        "text": formatted_generated_text["text"],
-        "address": geocode["a"]
-    })
-    return headerify(response)
+    # analyze and package for the browser
+    # pass secret so that tokens can be charged
+    analysis = finder.analyze(address, secret, validate_response["email"])
+
+    return headerify(jsonify(analysis))
 
 @app.before_request
 def handle_preflight():
@@ -104,8 +96,6 @@ def handle_preflight():
         return headerify(response)
     
 def headerify(response):
-    # this is poor practice in production
     response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning')
     return response

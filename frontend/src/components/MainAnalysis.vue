@@ -1,9 +1,11 @@
 <template>
-    <div class="bg-white container w-full shadow-2xl">
-        <div class="m-4 text-center">
-            <h1 class="title text-4xl w-full">Analysis</h1>
-            <div class="results snap-y" style="max-height: 90vh;">
-                <!-- remember to add snap -->
+    <div class="bg-white container w-full shadow-2xl text-center md:h-full">
+        <div class="m-4 flex flex-col relative">
+            <div class="flex items-center">
+                <img src="../assets/logo.png" alt="Infrascan logo" class="ml-4">
+                <h1 class="title text-5xl w-full">Analysis</h1>
+            </div>
+            <div class="results md:overflow-y-scroll small-results">
                 <div v-for="item in fetchedData.text" :key="Math.random()">
                     <div class="flex mt-4">
                         <img class="w-8 h-8 m-2" :src="iconData[item.title].icon">
@@ -20,10 +22,7 @@
     export default {
         name: "MainAnalysis",
         props: {
-            fetchedData: {
-                type: String,
-                default: "No results"
-            },
+            fetchedData: null
         },
         data() {
             return {
@@ -76,8 +75,14 @@
 
 <style lang="css" scoped>
 .results {
-    @apply text-left overflow-scroll;
+    @apply text-left;
 }
+@media (min-width: 768px) {
+    .small-results {
+        height: 80vh;
+    }
+}
+
 .results h1 {
     @apply font-bold mt-2
 }

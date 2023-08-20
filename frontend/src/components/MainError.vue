@@ -22,6 +22,7 @@ export default {
             default: ""
         },
     },
+    emits: ["onClose"],
     methods: {
         onClose() {
             this.$emit('onClose')
@@ -30,7 +31,7 @@ export default {
 }
 </script>
 
-<style lang="css" scoped>
+<style scoped>
     .error-box {
         @apply bg-white rounded-2xl w-full h-full shadow-2xl flex flex-col;
         width: min(95vw, 400px);
