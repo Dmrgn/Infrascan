@@ -4,6 +4,7 @@ googlemaps==4.10.0
 msgpack==1.0.3
 openai==0.27.8
 password_strength==0.0.3.post2
+random-user-agent==1.0.1
 bcrypt==4.0.1
 Requests==2.31.0
 validate_email==1.3

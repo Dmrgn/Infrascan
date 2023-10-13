@@ -6,11 +6,18 @@
                 <h1 class="title text-5xl w-full">Analysis</h1>
             </div>
             <div class="results md:overflow-y-scroll small-results">
+                <div>
+                    <div class="flex mt-4">
+                        <h1 class="capitalize text-lg">Overview</h1>
+                    </div>
+                    <p>{{ fetchedData.overview }}</p>
+                </div>
                 <div v-for="item in fetchedData.text" :key="Math.random()">
                     <div class="flex mt-4">
                         <img class="w-8 h-8 m-2" :src="iconData[item.title].icon">
                         <h1 class="capitalize text-lg">{{ item.title }}</h1>
                     </div>
+                    <p class="font-bold">Rating: {{ item.score }} / 100</p>
                     <p>{{ item.text }}</p>
                 </div>
             </div>

@@ -3,8 +3,10 @@ import googlemaps
 import math
 import json
 import urllib
+import random
 import requests
 from bs4 import BeautifulSoup as bs
+from random_user_agent.user_agent import UserAgent
 
 from constants import *
 import chat
@@ -18,6 +20,7 @@ with open("./data/keys.json") as f:
     mapbox_api_key = data["mapbox"]
 
 gmaps = googlemaps.Client(key=gmaps_api_key)
+user_agents = UserAgent()
 
 # performs entire analysis on the passed
 # address and returns it
@@ -39,12 +42,13 @@ def analyze(address, secret, email):
 
     # perform analysis
     analysis = analyze_location(geocode)
-    # format analysis for turbo gpt
-    formatted_analysis = chat.format_prompt_with_analysis(analysis)
-    # ask turbo gpt for human readable analysis
-    generated_text = chat.generate_response(geocode["a"], formatted_analysis)
-    # break giant string into sections for the frontend
-    formatted_generated_text = chat.format_generated_text(generated_text)
+    # # format analysis for turbo gpt
+    # formatted_analysis = chat.format_prompt_with_analysis(analysis)
+    # # ask turbo gpt for human readable analysis
+    # generated_text = chat.generate_response(geocode["a"], formatted_analysis)
+    # # break giant string into sections for the frontend
+    # # and add term scores to the generated text
+    # formatted_generated_text = chat.format_generated_text(generated_text, analysis)
 
     # add the search term to the list of 
     # things the user has searched
@@ -56,8 +60,10 @@ def analyze(address, secret, email):
         "mapUrl": create_map_url(geocode, analysis),
         "score": analysis["score"],
         "results": analysis,
-        "overview": formatted_generated_text["overview"],
-        "text": formatted_generated_text["text"],
+        # "overview": formatted_generated_text["overview"],
+        # "text": formatted_generated_text["text"],
+        "overview": "uncomment",
+        "text": ["uncomment"],
         "address": geocode["a"],
     }
     
@@ -139,47 +145,44 @@ def create_map_url(geocode, analysis):
 # interpret and find information about a place defined
 # by the passed block of html which was scraped from 
 # a webpage
-def understand_place(search_term, origin_geocode, place, visited_place_names):
+def understand_place(term, origin_geocode, place):
+    origin_geocode = {"a":"", "g":{"lat":0, "lng":0}, "region": ""} if origin_geocode is None else origin_geocode
     # ensure the place is not empty, an ad,
     # or a prompt to search for more places
     place_string = str(place)
     if len(place_string) == 0 or place_string.find("More places") != -1 or len(place.contents) == 1:
         return None
     # search for characteristics of the place
-    try: place_name = place.select(".BNeawe.deIvCb.AP7Wnd")[0].text
+    try: place_name = place.select(".tNxQIb.JIFdL.lrl-obh")[0][0].text
     except: 
         return None
-    # check if this place name has already been visited
-    if place_name in visited_place_names:
-        return None
-    # add to visited list
-    visited_place_names.add(place_name)
-    try: place_rating = float(place.select("span.oqSTJd")[0].text)
+    try: place_rating = float(place.select("span.yi40Hd.YrbPuc")[0].text)
     except:
         place_rating = 3
     try: 
         # look for the address after a "⋅"
-        dot_split = place.select(".BNeawe.tAd8D.AP7Wnd")[0].text.split("⋅")
+        dot_split = place.text.split("⋅")
+        # kdhw5hc
         if dot_split[1].find("$") != -1:
             # if [0] is a price rating, then look for [1]
             dot_split = dot_split[2]
         else:
             dot_split = dot_split[1]
         # scan until the start of some other data
-        enders = ["<", ".", "\n", "Open", "Clos"]
+        enders = ["<", "\n", "Open", "Clos"]
         for ender in enders:
             if dot_split.find(ender) != -1:
                 dot_split = dot_split[:dot_split.find(ender)]
         place_address = dot_split.strip()
         # ensure this is not empty
         if len(place_address) == 0:
-            raise Exception()
+            place_address = str(place).split("<br/>")[1]
         # get geocode info based on address
         place_geocode = address_to_formatted_geocode(f"{place_address}, {origin_geocode['region']}")
     except:
         # get the description of the place if it is available
         try:
-            place_description = place.select(".BNeawe.tAd8D.AP7Wnd")[0].text
+            place_description = place.select("div.tNxQIb.JIFdL.lrl-obh>span")[0].text
             # if there is a tag present and this isnt just text
             if place_description.find("<") != -1:
                 raise Exception()
@@ -188,14 +191,15 @@ def understand_place(search_term, origin_geocode, place, visited_place_names):
         # try to use geocoding to get the address
         # based off of the name of the location
         # and its available description
-        place_geocode = address_to_formatted_geocode(f"{place_name},{' '+place_description+', ' if not place_description is None else ''} {origin_geocode['region']}")
+        place_geocode = address_to_formatted_geocode(f"{place_name},{' '+place_description+', ' if not place_description is None else ''} {origin_geocode['region']}")    
     # set the address to be the more accurate geocode 
     # address as opposed to the webscraped address
     place_address = place_geocode["a"]
     # get distance to origin
     place_distance = geo_distance((place_geocode["g"]["lat"], place_geocode["g"]["lng"]), (origin_geocode["g"]["lat"], origin_geocode["g"]["lng"]))
     # only keep results within 1.5km
-    if place_distance > 2:
+    if place_distance > 10:
+        print("too far", place_distance)
         return None
     return {
         "name": place_name,
@@ -203,8 +207,8 @@ def understand_place(search_term, origin_geocode, place, visited_place_names):
         "distance": place_distance,
         "g": place_geocode["g"],
         "rating": place_rating,
-        "types": [search_term],
-        "score": (place_rating/5)/min(max(place_distance, 0.1), 1)
+        "types": [term["query"]],
+        "score": round((place_rating/5)/min(max(place_distance, 0.1), 1), 2)
     }
 
 # web scrape google search of the passed
@@ -212,21 +216,36 @@ def understand_place(search_term, origin_geocode, place, visited_place_names):
 def get_place_results_from_query(query):
     q = urllib.parse.quote(query)
     search_url = f"https://www.google.ca/search?q={q}"
+    # print(f"\t\t{search_url}")
     # ask google for the link to see more places
-    search_results = requests.get(search_url).text
+    search_results = requests.get(search_url, headers={"User-Agent":user_agents.get_random_user_agent()}).text
+    with open("./test.html", "w") as f:
+        f.write(search_results)
     search_soup = bs(search_results, features="html.parser")
     # find html elements describing place results
-    places_list = search_soup.select("#main>div>div>div>a>div>div")[:3] # take the first 3
+    places_list = search_soup.select("rllt__details")[:3] # take the first 3
+
+    # if len(places_list[0]) > 1:
+    #     for x in range(len(places_list)):
+    #         places_list[x] = places_list[x].select("div")[2]
+    # else:
+    #     for x in range(len(places_list)):
+    #         places_list[x] = places_list[x].select("div")[0]
     return places_list
 
 # web scrape for information about places matching 
 # the specified search term nearby the specified
 # address. Alternative to using (and paying for) the
 # gmaps places nearby api
-def analyze_address_with_term(geocode, term):
-    # create search url
-    shortened_address= geocode['a'].split(',')[0]
-    search_queries = [query.format(term=term, shortened_address=shortened_address, geocode_region=geocode["region"]) for query in SEARCH_QUERIES]
+def analyze_address_with_term(geocode, term, address = None):
+    # option to specify only address instead og geocode
+    # this is mainly for benchmarking purposes (geocoding is expensive)
+    if address is None: 
+        # create search url
+        shortened_address= geocode['a'].split(',')[0]
+        search_queries = [query.format(term=term["query"], shortened_address=shortened_address, geocode_region=geocode["region"]) for query in SEARCH_QUERIES]
+    else:
+        search_queries = [query.format(term=term["query"], shortened_address=address, geocode_region="") for query in SEARCH_QUERIES]
     places_list = []
     # perform each query and collect place results
     for search_query in search_queries:
@@ -235,12 +254,11 @@ def analyze_address_with_term(geocode, term):
             places_list.append(place) 
     # set of addresses included in analysis
     # so that queries don't overlap
-    visited_place_names = set()
     results = []
     term_score = 0
     # process each place result
     for place in places_list:
-        place_data = understand_place(term, geocode, place, visited_place_names)
+        place_data = understand_place(term, geocode, place)
         if place_data is None:
             # if there was an error processing the place html then skip it
             # or if it has already been processed
@@ -254,7 +272,7 @@ def analyze_address_with_term(geocode, term):
             break
     result = {
         "term_score": term_score,
-        "description": term,
+        "description": term["name"],
         "results":results
     }
     return result

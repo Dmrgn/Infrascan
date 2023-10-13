@@ -1,21 +1,22 @@
 import password_strength
 
 # constants for changing program behaviour
-DATABASE_FOLDER = "./data/" # location of msgpack data files
+DATABASE_FOLDER = "./data/" # location of msgpack data files and sqlite files
 SEARCH_QUERIES = [
     "{term} near {shortened_address}, {geocode_region}",
-    "{term} within 2km of {shortened_address}, {geocode_region}",
-    "{term} close to {shortened_address}, {geocode_region}",
+    # "{term} within 2km of {shortened_address}, {geocode_region}",
+    # "{term} close to {shortened_address}, {geocode_region}",
 ]
 SEARCH_TERMS = [
-    "grocery",
-    "community center",
-    "park",
-    "shopping",
-    "transit",
-    "school",
-    "restaurant"
+    {"name":"grocery", "query":"grocery store"},
+    {"name":"community center", "query":"community center"},
+    {"name":"park", "query":"park"},
+    {"name":"shopping", "query":"park"},
+    {"name":"transit", "query":"bus station"},
+    {"name":"school", "query":"school"},
+    {"name":"restaurant", "query":"restaurant"}
 ]
+SEARCH_RADIUS = 2000 # search radius around the address in meters
 MAX_CACHE_SIZE = 30 # number of addresses that will be cached
 EARTH_RADIUS = 6371 # radius of the earth in km
 NUM_DEFAULT_TOKENS = 10 # tokens given to new accounts on creation
@@ -35,11 +36,11 @@ Write a paragraph about the predicted community environment given the following 
 
 Start each new section with the name of the category surrounded by square brackets. For example, the beginning of the grocery section should take the form "[grocery] local grocery information goes here". The conclusion should begin with "[conclusion]".
 
-The data is provided with an abitrary number of decimal points. Please round distance values to the tens place (e.g 1.123214 kilometers becomes 1.1 kilometers and 0.419231123 kilometers becomes 400 meters). Community score should be rounded to the nearest integer values whole number.
+If applicable, in the conclusion, touch on areas of possible improvement based on categories with lower scores.
 
 Here is an example:
-Given the data segment "[school] Cedarvale Community School is 0.23049585663757122 kilometers away with a user rating of 3 and a community score of 1.015418340977652. It is listed as being a: primary_school,school,point_of_interest,establishment,."
-An appropriate response might be: "[school] Cedarvale Community School is within close proximity at just 200 meters away. With a predicted community score of 1, this school greatly contributes to the community landscape of the neighbourhood."
+Given the data segment "[school] Cedarvale Community School is 0.23 kilometers away with a user rating of 3 and a community score of 4. It is listed as being a: primary_school,school,point_of_interest,establishment,."
+An appropriate response might be: "[school] Cedarvale Community School is within close proximity at just 230 meters away. With a predicted community score of 4, this school greatly contributes to the community landscape of the neighbourhood."
 
 Here is your actual data:
 {data}

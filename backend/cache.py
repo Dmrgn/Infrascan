@@ -24,7 +24,7 @@ def get_address_data(address):
     # check age of cached data
     if time.time()-address[2] >= 60*60*24*MAX_CACHE_AGE:
         # remove cached data
-        cur.execute("DELETE FROM cache WHERE address = (?)", (address,))
+        cur.execute("DELETE FROM cache WHERE address = (?)", (address[0],))
         con.commit()
         cache_size-=1
         return None

@@ -14,8 +14,7 @@ def generate_response(address, request):
     ]
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=conversation,
-        
+        messages=conversation, 
     )
     content = response['choices'][0]['message']['content']
     # return response
@@ -33,19 +32,21 @@ def format_prompt_with_analysis(analysis):
         formatted_analysis += "\n"
     return PROMPT.format(data=formatted_analysis)
 
-def format_generated_text(generated_text):
+def format_generated_text(generated_text, analysis):
     generated_text = generated_text.split("\n")
-    overview = generated_text.pop(-1)
+    overview = generated_text.pop(-1).split("]")[1]
     text = []
     for x in range(0, len(generated_text)):
         paragraph = generated_text.pop(0).split("]")
         if len(paragraph) != 2:
             continue
+        print(x, int(x/2), x/2, analysis["results"][int(x/2)]["term_score"])
         text.append({
             "title": paragraph[0].split("[")[1],
-            "text": paragraph[1]
+            "text": paragraph[1],
+            "score": round(min(analysis["results"][int(x/2)]["term_score"]*20, 100))
         })
     return {
         "overview": overview,
-        "text": text
+        "text": text,
     }
