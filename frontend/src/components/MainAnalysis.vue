@@ -6,11 +6,12 @@
                 <h1 class="title text-5xl w-full">Analysis</h1>
             </div>
             <div class="results md:overflow-y-scroll small-results">
-                <div v-for="item in fetchedData.text" :key="Math.random()">
-                    <div class="flex mt-4">
+                <div v-for="item of fetchedData.text" :key="Math.random()">
+                    <div class="flex mt-4 ">
                         <img class="w-8 h-8 m-2" :src="iconData[item.title].icon">
                         <h1 class="capitalize text-lg">{{ item.title }}</h1>
                     </div>
+                    <h2 class="font-bold">{{fetchedData.results.results.filter((x)=>{return x.factor == item.title})[0]?.score}}/100</h2>
                     <p>{{ item.text }}</p>
                 </div>
             </div>

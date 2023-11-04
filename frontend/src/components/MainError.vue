@@ -1,6 +1,6 @@
 <template>
-    <div v-if="error != ''" class="absolute top-0 left-0 blur" style="width: 100vw; height: 100vh; background-color: rgba(100,100,100,0.5);"></div>
-    <div v-if="error != ''" class="absolute top-1/2 left-1/2">
+    <div v-if="error != ''" class="absolute z-[800] top-0 left-0 blur" style="width: 100vw; height: 100vh; background-color: rgba(100,100,100,0.5);"></div>
+    <div v-if="error != ''" class="absolute z-[800] top-1/2 left-1/2">
         <div class="error-box" style="transform: translate(-50%, -50%);">
             <h1 class="m-4 pt-3 my-0 text-red-400 text-lg">Error:</h1>
             <h1 class="m-4 pt-3 mt-0">

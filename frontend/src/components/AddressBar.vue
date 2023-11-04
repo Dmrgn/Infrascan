@@ -22,12 +22,12 @@ export default {
 
 <style lang="css" scoped>
     .address-bar {
-        @apply absolute bottom-2 left-1/2 p-4 bg-white rounded-2xl shadow-2xl outline-none;
+        @apply absolute z-[800] bottom-2 left-1/2 p-4 bg-white rounded-2xl shadow-2xl outline-none;
         transform: translateX(-50%);
     }
 
     .centered {
         @apply bottom-1/2;
-        transform: translate(-50%, 50%);
+        transform: translate(-50%, -50%);
     }
 </style>

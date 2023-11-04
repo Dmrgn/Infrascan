@@ -12,7 +12,7 @@ def create_stats():
         "last_login": time.time(),
     })
 
-# retreives statistics about the specific user account
+# retrieves statistics about the specific user account
 def get_stats(email):
     # get user stats from database
     res = database.cur.execute("SELECT * FROM user WHERE email = (?)", (email,))

@@ -1,7 +1,7 @@
 <template>
     <div v-if="isShown">
-        <div class="absolute top-0 left-0 blur" style="width: 100vw; height: 100vh; background-color: rgba(100,100,100,0.5);"></div>
-        <div class="settings-box">
+        <div class="absolute top-0 left-0 blur z-[800]" style="width: 100vw; height: 100vh; background-color: rgba(100,100,100,0.5);"></div>
+        <div class="settings-box z-[800]">
             <img src="../assets/logo.png" alt="Infrascan logo">
             <div class="w-full h-full flex flex-col justify-evenly items-center ml-4">
                 <h1 class="font-bold">Welcome, {{ userStats.name }}</h1>

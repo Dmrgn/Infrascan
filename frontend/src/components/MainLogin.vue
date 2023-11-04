@@ -1,5 +1,5 @@
 <template>
-    <div v-if="!isLoggedIn" :class="'login-box'+(isRegister?' is-register':'')">
+    <div v-if="!isLoggedIn" :class="'login-box z-[800]'+(isRegister?' is-register':'')">
         <img src="../assets/logo.png" alt="Infrascan logo">
         <form class="w-full h-full">
             <div class="flex flex-col justify-evenly items-center w-full h-full">

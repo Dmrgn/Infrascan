@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "vue": "^3.3.4",
     "vue3-cookies": "^1.0.6"
   },
