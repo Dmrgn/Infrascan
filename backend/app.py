@@ -96,6 +96,6 @@ def handle_preflight():
         return headerify(response)
     
 def headerify(response):
-    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', 'ngrok-skip-browser-warning')
     return response

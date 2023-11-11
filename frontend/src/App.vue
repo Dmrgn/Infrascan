@@ -29,7 +29,7 @@ export default {
             fetchedData: null,
             userStats: null,
             error: "",
-            serverUrl: "https://2e87-174-88-39-78.ngrok-free.app",
+            serverUrl: "http://127.0.0.1:5000",
             sessionSecret: "",
             emailSecret: "",
             isLoading: false,
@@ -88,7 +88,6 @@ export default {
         async onSearch(address) {
             this.fetchedData = await this.fetchData(`${this.serverUrl}/fetch?address=${address}&secret=${encodeURIComponent(this.sessionSecret)}`)
             this.userStats = this.fetchedData?.stats ?? this.userStats;
-            console.log(this.fetchedData);
         },
         async fetchData(address) {
             window.scrollTo(0, 0);

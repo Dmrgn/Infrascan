@@ -13,7 +13,7 @@
                 <img class="settings-gear" width="64" height="64" src="https://img.icons8.com/material-outlined/64/settings--v1.png" alt="settings--v1"/>
             </div>
         </div>
-        <AddressBar @onSearch="onSearch" :isShown="isLoggedIn" :isCentered="fetchedData == null"></AddressBar>
+        <AddressBar @onSearch="onSearch" :isShown="isLoggedIn" :isCentered="fetchedData == null" :addressValue="fetchedData?.location?.a"></AddressBar>
     </div>
 </template>
 

@@ -8,7 +8,8 @@
 export default {
     name: "AddressBar",
     props: {
-        isCentered: true
+        isCentered: true,
+        addressValue: "",
     },
     methods: {
         async onButtonPress(e) {
@@ -16,6 +17,11 @@ export default {
                 this.$emit("onSearch", this.$refs.input.value)
             }
         },
+    },
+    watch: {
+        addressValue(newValue, oldValue) {
+            if (newValue) this.$refs.input.value = newValue;
+        }
     },
 }
 </script>

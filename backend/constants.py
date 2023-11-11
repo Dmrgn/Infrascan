@@ -5,7 +5,7 @@ TEXT_DS_FILE = "./data/text_ds.txt" # data set file that the word2vec is trained
 VAL_DS_FILE = "./data/val_ds.txt" # data set validation file that the word2vec is trained on
 DATABASE_FOLDER = "./data/"
 
-SEARCH_RADIUS = 2000 # distance in meters to search around an address for amenities
+SEARCH_RADIUS = 1500 # distance in meters to search around an address for amenities
 EARTH_RADIUS = 6371 # radius of the earth in km
 MAX_CACHE_SIZE = 30 # number of addresses that will be cached
 NUM_DEFAULT_TOKENS = 10 # tokens given to new accounts on creation

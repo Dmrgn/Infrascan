@@ -5,13 +5,27 @@
                 <img src="../assets/logo.png" alt="Infrascan logo" class="ml-4">
                 <h1 class="title text-5xl w-full">Analysis</h1>
             </div>
+            <hr class="h-px my-8 bg-gray-200 border-0">
+            <div class="text-center mt-2">
+                <h1 class="capitalize text-2xl">{{ fetchedData.location.a }}</h1>
+            </div>
             <div class="results md:overflow-y-scroll small-results">
                 <div v-for="item of fetchedData.text" :key="Math.random()">
-                    <div class="flex mt-4 ">
-                        <img class="w-8 h-8 m-2" :src="iconData[item.title].icon">
-                        <h1 class="capitalize text-lg">{{ item.title }}</h1>
+                    <hr class="h-px my-8 bg-gray-200 border-0">
+                    <div class="section-grid">
+                        <div class="flex">
+                            <img class="w-8 h-8 m-2" width="48" height="48" :src="(isSectionExpanded?.[item.title]) ? 'https://img.icons8.com/material-sharp/24/circled-chevron-up.png' : 'https://img.icons8.com/material-outlined/48/circled-chevron-down.png'" alt="circled-chevron-down"/>
+                            <div class="flex justify-center">
+                                <img class="w-8 h-8 m-2" :src="iconData[item.title].icon">
+                                <h1 class="capitalize text-lg">{{ item.title }}</h1>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-6 mt-2">
+                            <div class="h-6 rounded-full" :style="`background-color: ${scoreToColor(fetchedData.results.results.filter((x)=>{return x.factor == item.title})[0]?.score)}; width: ${fetchedData.results.results.filter((x)=>{return x.factor == item.title})[0]?.score}%`">
+                                <h2 class="font-bold ml-2">{{fetchedData.results.results.filter((x)=>{return x.factor == item.title})[0]?.score}}/100</h2>
+                            </div>
+                        </div>
                     </div>
-                    <h2 class="font-bold">{{fetchedData.results.results.filter((x)=>{return x.factor == item.title})[0]?.score}}/100</h2>
                     <p>{{ item.text }}</p>
                 </div>
             </div>
@@ -23,7 +37,27 @@
     export default {
         name: "MainAnalysis",
         props: {
-            fetchedData: null
+            fetchedData: null,
+        },
+        data() {
+            return {
+                isSectionExpanded: {}
+            }
+        },
+        methods: {
+            scoreToColor(score) {
+                const dist = (100-Math.abs((100-score) - (score)))/100 + 0.5
+                return `rgb(${(100-score)/100*255*dist}, ${(score-20)/100*255*dist}, 0)`
+            }
+        },
+        watch: {
+            fetchedData(newValue, oldValue) {
+                console.log(newValue);
+                this.isSectionExpanded = {};
+                for (const item of this.fetchedData.text) {
+                    console.log(item);
+                }
+            }
         },
         data() {
             return {
@@ -78,9 +112,17 @@
 .results {
     @apply text-left;
 }
+.section-grid {
+    @apply grid grid-cols-2;
+}
+
 @media (min-width: 768px) {
     .small-results {
-        height: 80vh;
+        height: 77vh;
+    }
+
+    .section-grid {
+        @apply grid grid-cols-2;
     }
 }
 
