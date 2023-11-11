@@ -29,7 +29,7 @@ export default {
             fetchedData: null,
             userStats: null,
             error: "",
-            serverUrl: "http://127.0.0.1:5000",
+            serverUrl: "https://1ca6-174-93-12-41.ngrok-free.app",
             sessionSecret: "",
             emailSecret: "",
             isLoading: false,
