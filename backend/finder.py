@@ -21,7 +21,7 @@ gmaps = googlemaps.Client(key=gmaps_api_key)
 
 # performs entire analysis on the passed
 # address and returns it
-def analyze(address, secret, email):
+def analyze(address, secret, email, use_text=True):
     # get geocode of the address
     geocode = address_to_geocode(address)
 
@@ -39,6 +39,7 @@ def analyze(address, secret, email):
 
     # perform analysis
     analysis = overpass.analyze_geocode(geocode["g"])
+
     # format analysis for turbo gpt
     formatted_analysis = chat.format_prompt_with_analysis(analysis)
     # ask turbo gpt for human readable analysis

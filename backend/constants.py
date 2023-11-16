@@ -6,6 +6,8 @@ VAL_DS_FILE = "./data/val_ds.txt" # data set validation file that the word2vec i
 DATABASE_FOLDER = "./data/"
 
 SEARCH_RADIUS = 1500 # distance in meters to search around an address for amenities
+SEARCH_RADIUS_INCREMENT = 1000 # amount the search radius increases upon unsuccessful searches
+MAX_SEARCH_RADIUS_INCREASES = 5 # number of times the search radius will incrase upon unsuccessful searches before giving up
 EARTH_RADIUS = 6371 # radius of the earth in km
 MAX_CACHE_SIZE = 30 # number of addresses that will be cached
 NUM_DEFAULT_TOKENS = 10 # tokens given to new accounts on creation

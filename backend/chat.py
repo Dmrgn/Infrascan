@@ -34,7 +34,7 @@ def format_prompt_with_analysis(analysis):
 
 def format_generated_text(generated_text):
     generated_text = generated_text.split("\n")
-    overview = generated_text.pop(-1)
+    overview = generated_text.pop(-1).split("]")[1]
     text = {}
     for x in range(0, len(generated_text)):
         paragraph = generated_text.pop(0).split("]")

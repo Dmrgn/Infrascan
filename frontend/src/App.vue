@@ -9,7 +9,7 @@ import MainSettings from './components/MainSettings.vue';
 
 <template>
     <main>
-        <div :class="'md:grid'+(fetchedData != null ? ' grid-cols-3' : ' grid-cols-2')" style="width: 100vw; height: 100vh;">
+        <div class="md:flex items-stretch justify-stretch" style="width: 100vw; height: 100vh;">
             <MainAnalysis v-if="fetchedData != null" :fetchedData="fetchedData"></MainAnalysis>
             <MainMap @onSearch="onSearch" @onOpenSettings="openSettings" :isLoggedIn="isLoggedIn" :userStats="userStats" :fetchedData="fetchedData"></MainMap>
         </div>
@@ -29,7 +29,7 @@ export default {
             fetchedData: null,
             userStats: null,
             error: "",
-            serverUrl: "https://1ca6-174-93-12-41.ngrok-free.app",
+            serverUrl: "https://e2fb-174-93-12-41.ngrok-free.app",
             sessionSecret: "",
             emailSecret: "",
             isLoading: false,

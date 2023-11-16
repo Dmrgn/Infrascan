@@ -28,7 +28,7 @@ export default {
 
 <style lang="css" scoped>
     .address-bar {
-        @apply absolute z-[800] bottom-2 left-1/2 p-4 bg-white rounded-2xl shadow-2xl outline-none;
+        @apply absolute z-[800] bottom-2 left-1/2 p-4 bg-white rounded-2xl shadow-2xl outline-none border-2;
         transform: translateX(-50%);
     }
 
