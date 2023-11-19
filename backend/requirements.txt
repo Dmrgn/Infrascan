@@ -1,6 +1,5 @@
 beautifulsoup4==4.12.2
 Flask==2.0.1
-googlemaps==4.10.0
 msgpack==1.0.3
 openai==0.27.8
 password_strength==0.0.3.post2
@@ -8,4 +7,4 @@ bcrypt==4.0.1
 Requests==2.31.0
 validate_email==1.3
 yagmail==0.15.293
-user-agents==2.2.0
+Werkzeug==2.2.2
