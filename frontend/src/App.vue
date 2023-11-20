@@ -29,7 +29,7 @@ export default {
             fetchedData: null,
             userStats: null,
             error: "",
-            serverUrl: "https://e2fb-174-93-12-41.ngrok-free.app",
+            serverUrl: "http://18.117.227.29",
             sessionSecret: "",
             emailSecret: "",
             isLoading: false,

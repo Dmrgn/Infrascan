@@ -1,5 +1,4 @@
 # utilities for interacting with the gmaps api and analyzing the results
-import googlemaps
 import math
 import json
 import urllib
@@ -14,10 +13,7 @@ import stats
 
 with open("./data/keys.json") as f:
     data = json.load(f)
-    gmaps_api_key = data["gmaps"]
     mapbox_api_key = data["mapbox"]
-
-gmaps = googlemaps.Client(key=gmaps_api_key)
 
 # performs entire analysis on the passed
 # address and returns it
