@@ -1,1 +1,25 @@
 my_keys_lmao.txt
+
+# backend files
+/backend/__pycache__
+/backend/backup
+/backend/research_data
+/backend/data/*.sqlite
+/backend/data/keys.json
+
+# frontend files
+/frontend/logs
+/frontend/*.log
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/lerna-debug.log*
+
+/frontend/node_modules
+/frontend/.vscode
+/frontend/dist
+/frontend/dist-ssr
+/frontend/*.local
+
+/frontend/.vscode/*

@@ -1,7 +1,0 @@
-__pycache__
-backup
-research_data
-data/*.sqlite
-data/keys.json
-vercel.json
-.vercel
