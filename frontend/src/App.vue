@@ -29,7 +29,7 @@ export default {
             fetchedData: null,
             userStats: null,
             error: "",
-            serverUrl: "http://18.117.227.29",
+            serverUrl: "https://server.infrascan.xyz",
             sessionSecret: "",
             emailSecret: "",
             isLoading: false,
