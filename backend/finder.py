@@ -68,6 +68,7 @@ def analyze(address, secret, email, use_text=True):
 # converts the passed address into a geocode using the mapbox api
 def address_to_geocode(address):
     geocode = requests.get(f"https://api.mapbox.com/geocoding/v5/mapbox.places/{urllib.parse.quote(address)}.json?access_token={mapbox_api_key}").json()
+    print(geocode)
     geocode = geocode["features"][0]
     data = {
         "a":geocode["place_name"],
