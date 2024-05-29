@@ -17,9 +17,7 @@ with open("./data/keys.json") as f:
 
 # performs entire analysis on the passed
 # address and returns it
-def analyze(address, secret, email, use_text=True):
-    # get geocode of the address
-    geocode = address_to_geocode(address)
+def analyze(geocode, secret, email, use_text=True):
 
     # check cache for existing data
     cache_data = cache.get_address_data(geocode["a"])
@@ -39,13 +37,13 @@ def analyze(address, secret, email, use_text=True):
     # format analysis for turbo gpt
     formatted_analysis = chat.format_prompt_with_analysis(analysis)
     # ask turbo gpt for human readable analysis
-    generated_text = chat.generate_response(geocode["a"], formatted_analysis)
+    generated_text = chat.generate_response(formatted_analysis)
     # break giant string into sections for the frontend
     formatted_generated_text = chat.format_generated_text(generated_text)
 
     # add the search term to the list of 
     # things the user has searched
-    stats.append_stat(email, "searches", address)
+    stats.append_stat(email, "searches", geocode["a"])
     
     # return formatted analysis
     # see ./data/sample_response.json for more details
@@ -65,13 +63,33 @@ def analyze(address, secret, email, use_text=True):
     response["stats"] = stats.get_stats(email)["stats"]
     return response
 
-# converts the passed address into a geocode using the mapbox api
+# converts the passed address into an address, latlng pair using the mapbox api
 def address_to_geocode(address):
     geocode = requests.get(f"https://api.mapbox.com/geocoding/v5/mapbox.places/{urllib.parse.quote(address)}.json?access_token={mapbox_api_key}").json()
-    print(geocode)
     geocode = geocode["features"][0]
     data = {
         "a":geocode["place_name"],
         "g":(geocode["center"][1], geocode["center"][0])
     }
     return data
+
+# converts the passed latlng into an address, latlng pair using the mapbox api
+def latlng_to_geocode(latlng):
+    geocode = requests.get(f"https://api.mapbox.com/geocoding/v5/mapbox.places/{latlng[1]},{latlng[0]}.json?access_token={mapbox_api_key}").json()
+    geocode = geocode["features"][0]
+    data = {
+        "a":geocode["place_name"],
+        "g":(geocode["center"][1], geocode["center"][0])
+    }
+    return data
+
+# convert a user passed (from right click context menu etc) string into a geocode
+def latlng_from_string(latlng_string):
+    try:
+        latlng = json.loads(latlng_string)
+        if len(latlng) != 2:
+            return None
+        latlng = (float(latlng[0]), float(latlng[1]))
+    except:
+        return None
+    return latlng

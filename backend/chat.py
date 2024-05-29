@@ -7,12 +7,12 @@ from constants import *
 with open("./data/keys.json") as f:
     openai.api_key = json.load(f)["openai"]
 
-def generate_response(address, request):
+def generate_response(request):
     # generate response
     conversation = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": request},
-        {"role": "user", "content": DATA_PROMPT}
+        {"role": "user", "content": DATA_PROMPT},
     ]
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -34,17 +34,29 @@ def format_prompt_with_analysis(analysis):
 
 def format_generated_text(generated_text):
     generated_text = generated_text.split("\n")
-    overview = generated_text.pop(-1).split("]")[1]
-    text = {}
+    text = {
+        "grocery": "Not enough grocery information available for this location.",
+        "community center": "Not enough community center information available for this location.",
+        "park": "Not enough park information available for this location.",
+        "shopping": "Not enough shopping information available for this location.",
+        "transit": "Not enough transit information available for this location.",
+        "school": "Not enough school information available for this location.",
+        "restaurant": "Not enough restaurant information available for this location.",
+        "conclusion": "No summary generated. There was not enough information available to create a summary."
+    }
     for x in range(0, len(generated_text)):
         paragraph = generated_text.pop(0).split("]")
         if len(paragraph) != 2:
             continue
-        text[paragraph[0].split("[")[1]] = {
-            "title": paragraph[0].split("[")[1],
-            "text": paragraph[1]
-        }
+        factor = paragraph[0].split("[")[1]
+        if factor in text:
+            text[factor] = {
+                "title": factor,
+                "text": paragraph[1]
+            }
+    conclusion = text["conclusion"]["text"]
+    del text["conclusion"]
     return {
-        "overview": overview,
+        "overview": conclusion,
         "text": text
     }

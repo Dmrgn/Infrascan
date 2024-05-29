@@ -1,6 +1,6 @@
 <template>
     <div>
-        <input :class="'address-bar'+(this.isCentered?' centered':'')" ref="input" @keypress="onButtonPress" placeholder="Enter an address here..." type="text">
+        <input :class="'address-bar'+(this.isCentered?' centered':'')" ref="input" @keypress="onKeyPress" placeholder="Enter an address here..." type="text">
     </div>
 </template>
 
@@ -12,9 +12,9 @@ export default {
         addressValue: "",
     },
     methods: {
-        async onButtonPress(e) {
+        async onKeyPress(e) {
             if (e.key === "Enter") {
-                this.$emit("onSearch", this.$refs.input.value)
+                this.$emit("onSearch", this.$refs.input.value, "address")
             }
         },
     },

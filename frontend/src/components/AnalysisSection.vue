@@ -1,7 +1,11 @@
+<!-- related to analysis group -->
 <template>
-    <div class="border-light-200 border-2 my-4 p-2 rounded-2xl shadow-xl mr-2">
+    <div class="border-light-200 box mb-2">
         <div class="flex justify-stretch items-center cursor-pointer" @click="toggleExpand">
-            <img class="w-8 h-8 m-2" width="48" height="48" :src="dropDownImage" />
+            <div :class="'expand-button ' + (isExpanded ? 'expanded' : '')">
+                <div class="expand-button-left"></div>
+                <div class="expand-button-right"></div>
+            </div>
             <img class="w-8 h-8 m-2" :src="iconData[title]">
             <div class="mt-0 ml-2 w-full md:w-1/2">
                 <h1 class="capitalize text-lg mt-0 text-left font-bold">{{ title }}</h1>
@@ -20,8 +24,6 @@
 </template>
 
 <script>
-const DROP_DOWN_IMAGE_UP = "https://img.icons8.com/material-sharp/24/circled-chevron-up.png";
-const DROP_DOWN_IMAGE_DOWN = "https://img.icons8.com/material-outlined/48/circled-chevron-down.png";
 
 export default {
     name: "AnalysisSection",
@@ -32,7 +34,6 @@ export default {
     },
     data() {
         return {
-            dropDownImage: DROP_DOWN_IMAGE_UP,
             isExpanded: false,
             score: null,
             color: null,
@@ -64,7 +65,6 @@ export default {
     methods: {
         toggleExpand() {
             this.isExpanded = !this.isExpanded;
-            this.dropDownImage = (this.isExpanded ? DROP_DOWN_IMAGE_DOWN : DROP_DOWN_IMAGE_UP)
         },
         updateData() {
             switch (this.type) {
@@ -88,4 +88,6 @@ export default {
 }
 </script>
 
-<style lang="css" scoped></style>
+<style lang="css" scoped>
+    
+</style>

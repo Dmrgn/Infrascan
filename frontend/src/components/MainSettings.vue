@@ -1,7 +1,7 @@
 <template>
     <div v-if="isShown">
         <div class="absolute top-0 left-0 blur z-[800]" style="width: 100vw; height: 100vh; background-color: rgba(100,100,100,0.5);"></div>
-        <div class="settings-box z-[800]">
+        <div class="settings-box box z-[800]">
             <img src="../assets/logo.png" alt="Infrascan logo">
             <div class="w-full h-full flex flex-col justify-evenly items-center ml-4">
                 <h1 class="font-bold">Welcome, {{ userStats.name }}</h1>
@@ -43,7 +43,7 @@ export default {
 
 <style scoped>
 .settings-box {
-    @apply p-4 bg-white shadow-2xl absolute left-1/2 top-1/2 rounded-2xl flex flex-col items-center;
+    @apply p-4 absolute left-1/2 top-1/2 flex flex-col items-center;
     transform: translate(-50%, -50%);
     width: min(95vw, 400px);
     height: min(95vh, 500px);

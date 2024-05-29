@@ -1,12 +1,9 @@
-import overpy
 import urllib
 import requests
 import json
 import math
 
 from constants import *
-
-api = overpy.Overpass()
 
 factors = {
     "grocery": ['"shop"="supermarket"', '"shop"="greengrocer"'],
@@ -26,16 +23,6 @@ factor_weights = {
     "transit": 0.2,
     "school": 0.2,
     "restaurant": 0.1,
-}
-
-individual_factor_weights = {
-    "grocery": 1.25,
-    "park": 1.25,
-    "community center": 2,
-    "shopping": 1.5,
-    "transit": 1.5,
-    "school": 1.5,
-    "restaurant": 1.5,
 }
 
 def get_overpass_factor_results(distance, factor, geocode, depth):
@@ -62,6 +49,8 @@ def analyze_geocode(geocode):
     # for each factor, grocery, park, shopping etc..
     for key, factor in factors.items():
         result = get_overpass_factor_results(SEARCH_RADIUS, factor, geocode, 0)
+        # ensure that there is a key for each factor even if there are no results for that factor
+        if not key in element_results: element_results[key] = []
         # for each overpass element matching the request
         for element in result["elements"]:
             element_geocode = None
@@ -79,7 +68,6 @@ def analyze_geocode(geocode):
             name = tags["name"] if "name" in tags else f"A {key} with unknown name"
             # add the element to its corresponding category in element_results
             # "key" is an element of the factors, grocery, shopping etc..
-            if not key in element_results: element_results[key] = []
             element_results[key].append({
                 "name": name,
                 "distance": geo_distance(geocode, (element_geocode["lat"], element_geocode["lng"])),
@@ -97,9 +85,11 @@ def analyze_geocode(geocode):
         elms = element_results[factor][:5] if len(element_results[factor]) >= 5 else element_results[factor]
         for element in elms:
             factor_score += element["distance"]
-        factor_score /= len(elms)
-        # average element distance
-        factor_score = (4**(-factor_score*(1-len(elms)/6))) * ((len(elms)/5)**(1/5))
+        # if there are no elements, dont divide by zero, just keep the score at 0
+        if len(elms) > 0:
+            factor_score /= len(elms)
+            # average element distance
+            factor_score = (4**(-factor_score*(1-len(elms)/6))) * ((len(elms)/5)**(1/5))
         # weigh score based on relavence of each factor
         score+=factor_score*factor_weights[factor]
         # make factor score pretty and save it

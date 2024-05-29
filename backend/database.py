@@ -12,7 +12,6 @@ with open("./data/keys.json") as f:
     data = json.load(f)
     email_password = data["email"]
 
-print(EMAIL_ADDRESS, email_password)
 yag = yagmail.SMTP(EMAIL_ADDRESS, email_password)
 con = sqlite3.connect("./data/user.sqlite", check_same_thread=False)
 cur = con.cursor()
@@ -137,38 +136,31 @@ def register(name, email, password):
 # during the registration process
 def emailcode(email_code, secret, device):
     # check if the secret exists in the database
-    print("this is a test", 1)
     res = cur.execute("SELECT * FROM email_code WHERE secret = (?)", (secret,))
     user = res.fetchone()
     if user is None:
         return {"error":"Secret not found in the database", "login": True}
-    print("this is a test", 2)
     # check if the email_code matches
     if user[0] != email_code:
         # remove email code from database
         cur.execute("DELETE FROM email_code WHERE secret = (?)", (secret,))
         con.commit()
         return {"error":"Incorrect email verification code", "login": True}
-    print("this is a test", 3)
     email = user[3]
     password = user[4]
     # remove email code from database
     cur.execute("DELETE FROM email_code WHERE email = (?)", (email,))
     con.commit()
-    print("this is a test", 4)
     # create enter in user database
     num_tokens = NUM_DEFAULT_TOKENS
     created_stats = stats.create_stats()
     encrypted_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    print("this is a test", 5)
     cur.execute("INSERT INTO user VALUES (?, ?, ?, ?, ?)", (user[2], email, encrypted_password, num_tokens, created_stats))
     con.commit()
-    print("this is a test", 6)
     # update stats
     current_stats = stats.get_stats(email)["stats"]
     if not device in current_stats["devices"]:
         stats.append_stat(email, "devices", device)
-    print("this is a test", 7)
     # login user
     return login(email, password, device)
 

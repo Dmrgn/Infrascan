@@ -1,14 +1,14 @@
 <template>
-    <div :class="'relative col-span-2 h-full overflow-hidden w-full' + (fetchedData ? ' md:w-3/4' : '')">
+    <div class="relative h-full overflow-hidden w-full">
         <div id="map" class="h-full"></div>
-        
-        <div v-if="fetchedData != null" class="absolute left-1/2 top-4 z-[800] bg-white rounded-2xl p-2 shadow-2xl border-light-200 border-2" style="transform: translate(-50%, 0);">
-            <h2 class="title text-6xl mx-4">{{ Math.round(fetchedData.score) }}</h2>
+        <div v-if="fetchedData != null" class="absolute left-1/2 top-4 z-[800] bg-white rounded-2xl p-2 shadow-2xl -light-200 border-2 flex items-end" style="transform: translate(-50%, 0);">
+            <h2 class="title text-6xl ml-2">{{ fetchedData.score }}</h2>
+            <p class="title text-sm mr-1">/ 100</p>
         </div>
         <div v-if="isLoggedIn" class="absolute right-4 top-4 z-[800] flex md:items-start md:flex-row flex-col-reverse items-end">
-            <div class="bg-white rounded-2xl p-2 shadow-2xl md:mr-4 md:mt-0 mt-4 border-light-200 border-2">
+            <div class="box mr-2 border-light-200">
                 <div class="flex h-12 items-center mx-2">
-                    Tokens Remaining: <span class="font-bold text-xl">{{ userStats?.tokens }}</span>
+                    Tokens Remaining: <span class="font-bold text-xl ml-2">{{ userStats?.tokens }}</span>
                 </div>
             </div>
             <div @click="onOpenSettings" class="bg-white rounded-2xl p-2 shadow-2xl border-light-200 border-2">
@@ -23,7 +23,7 @@
 import "leaflet/dist/leaflet.css"
 
 import AddressBar from './AddressBar.vue';
-import * as L from "leaflet/src/Leaflet.js";
+import * as L from "leaflet/dist/leaflet-src.esm.js";
 
 export default {
     name: "MainMap",
@@ -37,6 +37,7 @@ export default {
             map: [],
             polygons: [],
             homeIcon: null,
+            contextMenu: null,
             colorCodes: {
                 "grocery": "orange",
                 "park": "green",
@@ -49,13 +50,16 @@ export default {
         }
     },
     mounted () {
-        const map = L.map("map", {}).setView([58.559274, -91.144678], 5);
+        const map = L.map("map", {zoomControl: false}).setView([58.559274, -91.144678], 5);
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> InfraScan'
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> InfraScan',
+            interactive: true,
         }).addTo(map);
+        map.on("contextmenu", this.toggleContextMenu, this)
         this.homeIcon = null;
         this.map = map;
+        this.contextMenu = L
     },
     components: {
         AddressBar,
@@ -93,27 +97,31 @@ export default {
         }
     },
     methods: {
-        onSearch(address) {
-            this.$emit("onSearch", address)
+        onSearch(address, type) { // type is "address" or "latlng"
+            this.$emit("onSearch", address, type)
         },
         onOpenSettings() {
             this.$emit("onOpenSettings")
-        }
+        },
+        toggleContextMenu(e) {
+            this.contextMenu = L.popup()
+                .setLatLng(e.latlng)
+                .setContent(()=>{
+                    const elm = document.createElement("input");
+                    elm.value = "Analyze Here";
+                    elm.classList.add("button");
+                    elm.type = "button";
+                    elm.onclick = ()=>{this.contextMenu.remove(); this.onSearch([e.latlng.lat, e.latlng.lng], "latlng");};
+                    return elm;
+                })
+            this.map.openPopup(this.contextMenu);
+        },
+
     },
 }
 </script>
 
 <style lang="css" scoped>
-    .image {
-        width: 100%;
-        height: 100%;
-        background-position: 50%;
-        background-size: cover;
-        background-image: url(https://media.wired.com/photos/59269cd37034dc5f91bec0f1/191:100/w_1280,c_limit/GoogleMapTA.jpg);
-    }
-    .is-placeholder {
-        @apply blur-sm;
-    }
     div:hover > .settings-gear {
         cursor:pointer;
         animation: rotate-gear 1s ease-in-out both infinite alternate-reverse;

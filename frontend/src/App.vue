@@ -9,9 +9,9 @@ import MainSettings from './components/MainSettings.vue';
 
 <template>
     <main>
-        <div class="md:flex items-stretch justify-stretch" style="width: 100vw; height: 100vh;">
-            <MainAnalysis v-if="fetchedData != null" :fetchedData="fetchedData"></MainAnalysis>
+        <div style="width: 100vw; height: 100vh;">
             <MainMap @onSearch="onSearch" @onOpenSettings="openSettings" :isLoggedIn="isLoggedIn" :userStats="userStats" :fetchedData="fetchedData"></MainMap>
+            <MainAnalysis v-if="fetchedData != null" :fetchedData="fetchedData"></MainAnalysis>
         </div>
         <MainLogin @onLogin="login" @onRegister="register" @onEmailCode="sendEmailCode" :isWaitingForEmailCode="isWaitingForEmailCode" :isLoggedIn="isLoggedIn"></MainLogin>
         <MainError @onClose="error = ''" :error="error"></MainError>
@@ -29,7 +29,8 @@ export default {
             fetchedData: null,
             userStats: null,
             error: "",
-            serverUrl: "https://server.infrascan.xyz",
+            //serverUrl: "https://server.infrascan.xyz",
+            serverUrl: "http://127.0.0.1:5000",
             sessionSecret: "",
             emailSecret: "",
             isLoading: false,
@@ -85,8 +86,12 @@ export default {
             const response = await this.fetchData(`${this.serverUrl}/userstats?secret=${encodeURIComponent(this.sessionSecret)}`)
             this.userStats = response;
         },
-        async onSearch(address) {
-            this.fetchedData = await this.fetchData(`${this.serverUrl}/fetch?address=${address}&secret=${encodeURIComponent(this.sessionSecret)}`)
+        async onSearch(address, type) { // type is "address" or "latlng"
+            if (type == "address")
+                this.fetchedData = await this.fetchData(`${this.serverUrl}/fetch?address=${address}&secret=${encodeURIComponent(this.sessionSecret)}`)
+            else // address is a latlng
+                this.fetchedData = await this.fetchData(`${this.serverUrl}/fetch?latlng=[${address}]&secret=${encodeURIComponent(this.sessionSecret)}`)
+            console.log(this.fetchedData);
             this.userStats = this.fetchedData?.stats ?? this.userStats;
         },
         async fetchData(address) {
@@ -131,8 +136,11 @@ export default {
 </script>
 
 <style>
+.box {
+    @apply bg-white border-2 p-2 rounded-2xl shadow-xl;
+}
 .button {
-    @apply rounded bg-gray-200 p-4 hover:bg-red-400 hover:text-white transition-colors cursor-pointer;
+    @apply rounded-2xl bg-white p-4 hover:bg-gray-200 border-2 transition-colors cursor-pointer;
 }
 .link {
     @apply underline text-red-400 hover:text-gray-400 cursor-pointer;
