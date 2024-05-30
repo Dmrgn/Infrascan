@@ -30,6 +30,7 @@ def format_prompt_with_analysis(analysis):
         for item in (result["results"][:5] if len(result["results"]) >= 5 else result["results"]):
             formatted_analysis += f"{item['name']} is {round(item['distance']*10)/10} kilometers away. "
         formatted_analysis += "\n"
+    print(formatted_analysis)
     return formatted_analysis
 
 def format_generated_text(generated_text):
