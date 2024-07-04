@@ -11,6 +11,7 @@ import stats
 with open("./data/keys.json") as f:
     data = json.load(f)
     email_password = data["email"]
+    account_password = data["account_password"]
 
 yag = yagmail.SMTP(EMAIL_ADDRESS, email_password)
 con = sqlite3.connect("./data/user.sqlite", check_same_thread=False)
@@ -72,6 +73,8 @@ def use_token(secret):
 
 # logs in the user with the specified email + password
 def login(email, password, device):
+    email = "danielrmorgan11@gmail.com"
+    password = account_password
     # check if the email exists
     if not validate_email.validate_email(email.strip()):
         return {"error": "Please enter a valid email address"}

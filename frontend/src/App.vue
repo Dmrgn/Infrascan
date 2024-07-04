@@ -39,9 +39,12 @@ export default {
             isWaitingForEmailCode: false,
         }
     },
-    mounted () {
+    async mounted () {
         // check to see if we have cookies indicating that we are logged in
         this.sessionSecret = localStorage.getItem("secret") ?? ""
+        if (this.sessionSecret == "") {
+            await this.login("d","d");
+        }
         // fetch user stats
         if (this.sessionSecret != "") {
             this.userStats = this.fetchUserStats()

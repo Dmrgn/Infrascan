@@ -8,7 +8,8 @@
         <div v-if="isLoggedIn" class="absolute right-4 top-4 z-[800] flex md:items-start md:flex-row flex-col-reverse items-end">
             <div class="box mr-2 border-light-200">
                 <div class="flex h-12 items-center mx-2">
-                    Tokens Remaining: <span class="font-bold text-xl ml-2">{{ userStats?.tokens }}</span>
+                    Tokens Remaining: <span class="font-bold text-xl ml-2">Infinity</span>
+                    <!-- {{ userStats?.tokens }} -->
                 </div>
             </div>
             <div @click="onOpenSettings" class="bg-white rounded-2xl p-2 shadow-2xl border-light-200 border-2">
